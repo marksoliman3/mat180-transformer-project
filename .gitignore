@@ -26,9 +26,6 @@ Thumbs.db
 *.pt
 *.pth
 
-# Data (keep repo lightweight)
-data/
-
 # Logs
 *.log
 runs/
