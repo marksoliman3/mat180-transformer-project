@@ -1,5 +1,3 @@
-# Data pipeline for character-level language modeling on Tiny Shakespeare.
-
 import os
 import urllib.request
 import torch
