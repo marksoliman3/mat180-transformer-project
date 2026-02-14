@@ -1,46 +1,24 @@
 # MAT 180 — Linear Algebra Foundations of Decoder-Only Transformer Architecture
 
-**Course:** MAT 180: Special Topics in Mathematics 
+**Course:** MAT 180: Special Topics in Mathematics  
 **Track:** Algorithm  
-**Team:** Mark Soliman, Yahir De Leon, Benedict Lim
 
 ## Overview
 
-This project analyzes the linear algebra foundations underlying decoder-only transformer architecture. We implement a minimal transformer from scratch in PyTorch, focusing on the mathematical mechanics of multi-head self-attention, feed-forward networks, residual connections, and layer normalization.
+This project analyzes the linear algebra foundations underlying decoder-only transformer architecture. We implement a minimal transformer from scratch in PyTorch, focusing on the mathematical mechanics of multi-head self-attention and feed-forward networks.
 
 ## Repository Structure
 
 ```
 mat180-transformer-project/
-├── src/                  # Source code
+├── src/
+│   ├── data.py           # Data pipeline (tokenization, batching)
 │   ├── model.py          # Decoder-only transformer implementation
-│   ├── train.py          # Training loop
-│   └── evaluate.py       # Evaluation and metrics
-├── notebooks/            # Jupyter notebooks for exploration and visualization
-├── docs/                 # Report drafts and presentation materials
-├── results/              # Output plots, tables, and saved results
-├── requirements.txt      # Python dependencies
+│   └── train.py          # Training loop, evaluation, and text generation
+├── data/                 # Tiny Shakespeare dataset (auto-downloaded)
+├── results/              # Loss curves, generated samples, saved model
 └── README.md
 ```
-
-## Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/<your-username>/mat180-transformer-project.git
-   cd mat180-transformer-project
-   ```
-
-2. **Create a virtual environment (recommended):**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
 
 ## Usage
 
@@ -49,16 +27,20 @@ mat180-transformer-project/
 python src/train.py
 ```
 
-### Evaluation
-```bash
-python src/evaluate.py
-```
+This will:
+- Download the Tiny Shakespeare dataset (if not already present)
+- Train the model for 5000 steps (~7 min on CPU)
+- Save loss curves, a generated text sample, and model weights to `results/`
 
 ### Outputs
-- Trained model checkpoints are saved to `results/`
-- Plots and tables are saved to `results/`
+All outputs are saved to `results/`:
+- `loss_curves.png` — training and validation loss plot
+- `generated_sample.txt` — sample Shakespeare-like text from the trained model
+- `model.pt` — saved model weights
+- `loss_data.pt` — raw loss data for re-plotting
 
 ## References
 
 - Vaswani, A., et al. (2017). *Attention Is All You Need.* NeurIPS.
+- Radford, A., et al. (2019). *Language Models are Unsupervised Multitask Learners.* OpenAI.
 - Strang, G. (2019). *Linear Algebra and Learning from Data.* Wellesley-Cambridge Press.
