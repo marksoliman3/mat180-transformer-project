@@ -16,12 +16,11 @@ from data import (
 )
 from model import DecoderOnlyTransformer
 
-NUM_STEPS = 3000
-EVAL_INTERVAL = 150
-EVAL_STEPS = 50
+NUM_STEPS = 2000
+EVAL_INTERVAL = 250
+EVAL_STEPS = 20
 LEARNING_RATE = 3e-4
 
-# baseline config
 BASELINE = {
     "d_model": 64,
     "num_heads": 4,
@@ -130,28 +129,6 @@ def plot_experiment(title, param_name, results, filename):
     plt.close()
 
 
-def run_experiment(name, param_key, values, vocab_size, train_data, val_data):
-
-    results = {}
-    for val in values:
-        config = BASELINE.copy()
-        config[param_key] = val
-        label = str(val)
-
-        print(f"\n{param_key}={val} | d_model={config['d_model']}, "
-              f"heads={config['num_heads']}, layers={config['num_layers']}, "
-              f"d_ff={config['d_ff']}")
-
-        results[label] = train_one_config(vocab_size, config, train_data, val_data)
-
-        r = results[label]
-        print(f"  -> {r['params']:,} params, "
-              f"val loss {r['final_val_loss']:.4f}, "
-              f"{r['time']:.1f}s")
-
-    return results
-
-
 def print_summary(all_results):
     print(f"\n{'Experiment':<25} {'Setting':<10} {'Params':>10} "
           f"{'Train Loss':>12} {'Val Loss':>12} {'Time (s)':>10}")
@@ -177,36 +154,43 @@ def main():
     print(f"Train tokens: {len(train_data):,}")
     print(f"Val tokens:   {len(val_data):,}")
 
-    all_results = {}
+    # train the baseline once and reuse it in both experiments
+    print("\nBaseline (d_model=64, heads=4, layers=2, d_ff=256)")
+    baseline_result = train_one_config(vocab_size, BASELINE, train_data, val_data)
+    r = baseline_result
+    print(f"  -> {r['params']:,} params, val loss {r['final_val_loss']:.4f}, {r['time']:.1f}s")
 
-    # experiment 1: vary attention heads
-    exp1 = run_experiment(
-        "Attention Heads", "num_heads", [1, 2, 4],
-        vocab_size, train_data, val_data,
-    )
-    plot_experiment("Attention Heads", "heads", exp1, "exp_heads.png")
-    all_results["Attention Heads"] = exp1
+    # experiment 1: vary attention heads (1, 2, and baseline=4)
+    heads_results = {}
+    for h in [1, 2]:
+        config = BASELINE.copy()
+        config["num_heads"] = h
+        print(f"\nnum_heads={h}")
+        heads_results[str(h)] = train_one_config(vocab_size, config, train_data, val_data)
+        r = heads_results[str(h)]
+        print(f"  -> {r['params']:,} params, val loss {r['final_val_loss']:.4f}, {r['time']:.1f}s")
+    heads_results["4"] = baseline_result
+    plot_experiment("Attention Heads", "heads", heads_results, "exp_heads.png")
 
-    # experiment 2: vary decoder layers
-    exp2 = run_experiment(
-        "Decoder Layers", "num_layers", [1, 2, 4],
-        vocab_size, train_data, val_data,
-    )
-    plot_experiment("Decoder Layers", "layers", exp2, "exp_layers.png")
-    all_results["Decoder Layers"] = exp2
+    # experiment 2: vary decoder layers (1, baseline=2, and 4)
+    layers_results = {}
+    for n in [1, 4]:
+        config = BASELINE.copy()
+        config["num_layers"] = n
+        print(f"\nnum_layers={n}")
+        layers_results[str(n)] = train_one_config(vocab_size, config, train_data, val_data)
+        r = layers_results[str(n)]
+        print(f"  -> {r['params']:,} params, val loss {r['final_val_loss']:.4f}, {r['time']:.1f}s")
+    layers_results["2"] = baseline_result
+    plot_experiment("Decoder Layers", "layers", layers_results, "exp_layers.png")
 
-    # experiment 3: vary embedding dimension
-    exp3 = run_experiment(
-        "Embedding Dim", "d_model", [32, 64, 128],
-        vocab_size, train_data, val_data,
-    )
-    plot_experiment("Embedding Dim", "d_model", exp3, "exp_dmodel.png")
-    all_results["Embedding Dim"] = exp3
-
+    all_results = {
+        "Attention Heads": heads_results,
+        "Decoder Layers": layers_results,
+    }
     print_summary(all_results)
 
     torch.save(all_results, os.path.join(RESULTS_DIR, "experiment_results.pt"))
-    print(f"\nResults saved to results/experiment_results.pt")
 
 
 if __name__ == "__main__":
